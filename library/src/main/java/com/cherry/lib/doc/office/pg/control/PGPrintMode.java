@@ -163,7 +163,7 @@ public class PGPrintMode extends FrameLayout implements IPageListViewListener
     protected void dispatchDraw(Canvas canvas) 
     {
         super.dispatchDraw(canvas);
-        drawPageNubmer(canvas);
+//        drawPageNubmer(canvas);
     }
     
     /**

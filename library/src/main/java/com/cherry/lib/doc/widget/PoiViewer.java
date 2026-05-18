@@ -33,7 +33,7 @@ public class PoiViewer {
 
     private WebView mWebView;
 
-    private ProgressDialog mProgressDialog;
+//    private ProgressDialog mProgressDialog;
 
     public PoiViewer(Context context) {
         mContext = context;
@@ -42,8 +42,8 @@ public class PoiViewer {
     }
 
     private void initView() {
-        mProgressDialog = new ProgressDialog(mContext);
-        mProgressDialog.setMessage("正在加载文件...");
+//        mProgressDialog = new ProgressDialog(mContext);
+//        mProgressDialog.setMessage("正在加载文件...");
         // 初始化网页
         mWebView = new WebView(mContext);
         mWebView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -74,7 +74,7 @@ public class PoiViewer {
         mRootView = fileLayout;
         mFilePath = filePath;
         mFileExt = filePath.substring(filePath.lastIndexOf("."));
-        mProgressDialog.show();
+//        mProgressDialog.show();
         new ConvertTask().execute(filePath);
     }
 
@@ -111,9 +111,9 @@ public class PoiViewer {
 
         @Override
         protected void onPostExecute(String returnString) {
-            mProgressDialog.dismiss();
+//            mProgressDialog.dismiss();
             if (TextUtils.isEmpty(returnString)) {
-                Toast.makeText(mContext, "文件打开失败", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(mContext, "文件打开失败", Toast.LENGTH_SHORT).show();
                 scanForActivity(mContext).finish();
                 return;
             }

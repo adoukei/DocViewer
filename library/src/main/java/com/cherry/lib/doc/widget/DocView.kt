@@ -39,6 +39,7 @@ import com.cherry.lib.doc.interfaces.OnDocPageChangeListener
 import com.cherry.lib.doc.interfaces.OnPdfItemClickListener
 import com.cherry.lib.doc.interfaces.OnWebLoadListener
 import com.cherry.lib.doc.office.IOffice
+import com.cherry.lib.doc.office.constant.EventConstant
 import com.cherry.lib.doc.pdf.PdfDownloader
 import com.cherry.lib.doc.pdf.PdfPageViewAdapter
 import com.cherry.lib.doc.pdf.PdfQuality
@@ -59,7 +60,7 @@ import java.net.URLEncoder
  * File: PdfView
  * Author: Victor
  * Date: 2023/10/30 11:30
- * Description: 
+ * Description:
  * -----------------------------------------------------------------
  */
 
@@ -95,6 +96,7 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
 
     var sourceFilePath: String? = null
     var mFileType: Int = -1
+    private var mIOffice: IOffice? = null
     var mViewPdfInPage: Boolean = true
 
     private lateinit var mRvPdf: PinchZoomRecyclerView
@@ -231,6 +233,7 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
         if (fileType > 0) {
             type = fileType
         }
+        mFileType = type
         Log.e(TAG,"openDoc()......type = $type")
         when (type) {
             FileType.PDF -> {
@@ -304,6 +307,23 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
                 },200)
             }
 
+            override fun changePage() {
+                // 引擎在页码或总页数变化时回调此方法，此时可获取真实页数
+                val count = try {
+                    (getControl().getActionValue(EventConstant.APP_COUNT_PAGES_ID, null) as? Int) ?: 0
+                } catch (e: Exception) {
+                    0
+                }
+                val currentPage = try {
+                    ((getControl().getActionValue(EventConstant.APP_CURRENT_PAGE_NUMBER_ID, null) as? Int) ?: 1) - 1
+                } catch (e: Exception) {
+                    0
+                }
+                Log.d(TAG, "changePage: currentPage=$currentPage, totalPageCount=$count")
+                totalPageCount = count
+                mOnDocPageChangeListener?.OnPageChanged(currentPage, totalPageCount)
+            }
+
             override fun openFileFailed() {
                 try {
                     if (mPoiViewer == null) {
@@ -334,6 +354,7 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
 
         }
         iOffice.openFile(url,docSourceType, fileType.toString())
+        mIOffice = iOffice
     }
 
     fun showPdf(docSourceType: Int, url: String?) {
@@ -569,7 +590,27 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
 
     fun onDestroy() {
         mPoiViewer?.recycle()
+        mIOffice = null
         closePdfRender()
         mOnDocPageChangeListener = null
+    }
+
+    fun scrollToPage(pageIndex: Int) {
+        val target = pageIndex.coerceIn(0, if (totalPageCount > 0) totalPageCount - 1 else 0)
+        mIOffice?.let { io ->
+            try {
+                when (mFileType) {
+                    FileType.DOC, FileType.DOCX ->
+                        io.getControl().actionEvent(EventConstant.WP_SHOW_PAGE, target)
+                    FileType.PPT, FileType.PPTX ->
+                        io.getControl().actionEvent(EventConstant.PG_SHOW_SLIDE_ID, target)
+                    FileType.XLS, FileType.XLSX ->
+                        io.getControl().actionEvent(EventConstant.SS_SHOW_SHEET, target)
+                    else -> return@let
+                }
+                return
+            } catch (_: Exception) {}
+        }
+        (mRvPdf.layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(target, 0)
     }
 }

@@ -2,6 +2,8 @@
 # Cherry Office 库 ProGuard 混淆规则
 # ==============================================
 
+# ============ 基础保留规则 ============
+
 # 保留对外暴露的 public 类、接口
 -keep public class com.cherry.lib.doc.** { *; }
 -keep public class com.cherry.lib.pdf.** { *; }
@@ -28,6 +30,8 @@
 }
 
 # 保留 R 文件（资源引用）
+-keep class **.R { *; }
+-keep class **.R$* { *; }
 -keepclassmembers class **.R$* {
     public static <fields>;
 }
