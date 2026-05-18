@@ -39,7 +39,6 @@ import com.cherry.lib.doc.interfaces.OnDocPageChangeListener
 import com.cherry.lib.doc.interfaces.OnPdfItemClickListener
 import com.cherry.lib.doc.interfaces.OnWebLoadListener
 import com.cherry.lib.doc.office.IOffice
-import com.cherry.lib.doc.interfaces.OnOfficePageChangeListener
 import com.cherry.lib.doc.pdf.PdfDownloader
 import com.cherry.lib.doc.pdf.PdfPageViewAdapter
 import com.cherry.lib.doc.pdf.PdfQuality
@@ -78,7 +77,7 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
     private var quality = PdfQuality.NORMAL
     private var engine = DocEngine.INTERNAL
     private var showDivider = true
-    private var showPageNum = true
+    private var showPageNum = false
     private var divider: Drawable? = null
     private var runnable = Runnable {}
     var enableLoadingForPages: Boolean = true
@@ -94,8 +93,6 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
 
     var mOnDocPageChangeListener: OnDocPageChangeListener? = null
 
-    var mOnOfficePageChangeListener: OnOfficePageChangeListener? = null
-
     var sourceFilePath: String? = null
     var mFileType: Int = -1
     var mViewPdfInPage: Boolean = true
@@ -109,7 +106,6 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
     private lateinit var mDocWeb: DocWebView
     private lateinit var mPlLoadProgress: ProgressBar
     private lateinit var mPdfPageNo: TextView
-    private lateinit var mOfficePageNo: TextView
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
@@ -147,7 +143,7 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
             typedArray.getInt(R.styleable.DocView_dv_engine, DocEngine.INTERNAL.value)
         engine = DocEngine.values().first { it.value == engineValue }
         showDivider = typedArray.getBoolean(R.styleable.DocView_dv_showDivider, true)
-        showPageNum = typedArray.getBoolean(R.styleable.DocView_dv_show_page_num, true)
+        showPageNum = typedArray.getBoolean(R.styleable.DocView_dv_show_page_num, false)
         divider = typedArray.getDrawable(R.styleable.DocView_dv_divider)
         enableLoadingForPages = typedArray.getBoolean(R.styleable.DocView_dv_enableLoadingForPages, enableLoadingForPages)
         pbHeight = typedArray.getDimensionPixelSize(R.styleable.DocView_dv_page_pb_height, pbDefaultHeight)
@@ -511,6 +507,8 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
 
                 if (showPageNum) {
                     mPdfPageNo.visibility = View.VISIBLE
+                }else{
+                    mPdfPageNo.visibility = View.GONE
                 }
 
                 if (foundPosition == 0 && !mViewPdfInPage)

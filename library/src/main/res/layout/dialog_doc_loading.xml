@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <!-- 加载卡片：315×181dp，圆角 20dp，clipToOutline 让装饰圆被裁剪 -->
+    <FrameLayout
+        android:id="@+id/cardLoading"
+        android:layout_width="315dp"
+        android:layout_height="181dp"
+        android:background="@drawable/bg_doc_loading_card"
+        android:clipToOutline="true"
+        android:outlineProvider="background">
+
+        <!-- 左侧装饰圆：粉色，位置偏左偏上 -->
+        <View
+            android:id="@+id/vCircleLeft"
+            android:layout_width="155dp"
+            android:layout_height="155dp"
+            android:layout_gravity="start|top"
+            android:layout_marginStart="-50dp"
+            android:layout_marginTop="-40dp"
+            android:background="@drawable/bg_loading_circle_pink" />
+
+        <!-- 右侧装饰圆：粉色，位置偏右偏下 -->
+        <View
+            android:id="@+id/vCircleRight"
+            android:layout_width="155dp"
+            android:layout_height="155dp"
+            android:layout_gravity="end|bottom"
+            android:layout_marginEnd="-50dp"
+            android:layout_marginBottom="-40dp"
+            android:background="@drawable/bg_loading_circle_pink" />
+
+        <!-- loading 插图：100×68dp，水平居中 -->
+        <ImageView
+            android:id="@+id/ivLoading"
+            android:layout_width="100dp"
+            android:layout_height="68dp"
+            android:layout_gravity="center"
+            android:src="@drawable/img_doc_loading"
+            android:scaleType="fitCenter"
+            android:contentDescription="@null" />
+
+        <!-- Loading... 文字：14sp，50% 黑，居中 -->
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/tvLoading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="48dp"
+            android:text="loading..."
+            android:textSize="14sp"
+            android:textColor="#80000000" />
+
+    </FrameLayout>
+</FrameLayout>

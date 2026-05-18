@@ -98,8 +98,8 @@ internal class PdfViewAdapter(
                 if (pageNo == adapterPosition) {
                     bitmap?.let {
                         container_view?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                            height =
-                                (container_view?.width?.toFloat() ?: 0f / ((bitmap.width.toFloat() / bitmap.height.toFloat()))).toInt()
+                            val scaleFactor = 1.2f  // 增大到原来的120%
+                            height = ((container_view?.width?.toFloat() ?: 0f) / (bitmap.width.toFloat() / bitmap.height.toFloat()) * scaleFactor).toInt()
                             this.topMargin = pageSpacing.top
                             this.leftMargin = pageSpacing.left
                             this.rightMargin = pageSpacing.right

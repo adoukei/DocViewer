@@ -15,6 +15,6 @@
         app:dv_moving_orientation="vertical"
         app:dv_page_pb_color="@color/yellow"
         app:dv_engine="internal"
-        app:dv_quality="normal"/>
+        app:dv_quality="enhanced"/>
 
 </FrameLayout>

@@ -12,6 +12,8 @@ import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
@@ -21,8 +23,11 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
+import com.cherry.lib.doc.R;
 import com.cherry.lib.doc.bean.FileType;
 import com.cherry.lib.doc.office.common.ICustomDialog;
 import com.cherry.lib.doc.office.common.IOfficeToPicture;
@@ -113,10 +118,20 @@ public class MainControl extends AbstractControl {
                     case MainConstant.HANDLER_MESSAGE_SHOW_PROGRESS:
                         if (getMainFrame().isShowProgressBar()) {
                             post(() -> {
-                                progressDialog = ProgressDialog.show(getActivity(),
-                                        frame.getAppName(), "测试222",
-                                        false, false, null);
+                                progressDialog = new Dialog(getActivity());
+                                progressDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                                progressDialog.setContentView(R.layout.dialog_doc_loading);
+                                progressDialog.setCancelable(false);
+
+                                Window window = progressDialog.getWindow();
+                                if (window != null) {
+                                    window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                    window.setDimAmount(0f);
+                                    window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+                                }
+
                                 progressDialog.setOnKeyListener(onKeyListener);
+                                progressDialog.show();
                             });
                         } else {
                             if (customDialog != null) {
@@ -674,7 +689,7 @@ public class MainControl extends AbstractControl {
     //toast
     private Toast toast;
     // 
-    private ProgressDialog progressDialog;
+    private Dialog progressDialog;
     //
     private DialogInterface.OnKeyListener onKeyListener;
     //

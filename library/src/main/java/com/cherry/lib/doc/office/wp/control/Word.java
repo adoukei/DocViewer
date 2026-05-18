@@ -77,7 +77,8 @@ public class Word extends LinearLayout implements IWord {
         paint = new Paint();
         paint.setAntiAlias(true);
         paint.setTypeface(Typeface.SANS_SERIF);
-        paint.setTextSize(24);
+        paint.setTextSize(32);
+        paint.setColor(Color.WHITE);
         visibleRect = new Rectangle();
         initManage();
         if (defaultMode == WPViewConstant.PRINT_ROOT) {
@@ -137,7 +138,7 @@ public class Word extends LinearLayout implements IWord {
         try {
             if (getCurrentRootType() == WPViewConstant.PAGE_ROOT) {
                 pageRoot.draw(canvas, 0, 0, zoom);
-//                drawPageNubmer(canvas, zoom);
+                drawPageNubmer(canvas, zoom);
             } else if (getCurrentRootType() == WPViewConstant.NORMAL_ROOT) {
                 normalRoot.draw(canvas, 0, 0, normalZoom);
             }
@@ -580,8 +581,8 @@ public class Word extends LinearLayout implements IWord {
                     + String.valueOf(pageRoot.getPageCount());
             int w = (int) paint.measureText(pn);
             int h = (int) (paint.descent() - paint.ascent());
-            int x = (int) ((rect.right + getScrollX() - w) / 2);
-            int y = (int) ((rect.bottom - h) - 50);
+            int x = (int) ((rect.left) + 80);
+            int y = (int) ((rect.top) + 60);
             Drawable drawable = SysKit.getPageNubmerDrawable();
             drawable.setBounds((int) (x - 20), y - 10, x + w + 20, y + h + 10);
             drawable.draw(canvas);

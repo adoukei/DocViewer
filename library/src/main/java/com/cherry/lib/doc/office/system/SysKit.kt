@@ -318,12 +318,12 @@ class SysKit(
                 if (pageNumberDrawable == null) {
                     pageNumberDrawable = ShapeDrawable(
                         RoundRectShape(
-                            floatArrayOf(6f, 6f, 6f, 6f, 6f, 6f, 6f, 6f),
+                            floatArrayOf(52f, 52f, 52f, 52f, 52f, 52f, 52f, 52f),
                             null,
                             null
                         )
                     )
-                    pageNumberDrawable!!.paint.color = -0x770077bc
+                    pageNumberDrawable!!.paint.color = -0x80000000
                 }
                 return pageNumberDrawable
             }
