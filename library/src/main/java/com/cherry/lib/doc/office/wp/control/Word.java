@@ -572,22 +572,22 @@ public class Word extends LinearLayout implements IWord {
     private void drawPageNubmer(Canvas canvas, float zoom) {
         int currentNumber = getCurrentPageNumber();
         if (control.getMainFrame().isDrawPageNumber() && pageRoot != null) {
-            Rect rect = canvas.getClipBounds();
-            if (rect.width() != getWidth()
-                    || rect.height() != getHeight()) {
-                return;
-            }
-            String pn = String.valueOf(currentNumber) + " / "
-                    + String.valueOf(pageRoot.getPageCount());
-            int w = (int) paint.measureText(pn);
-            int h = (int) (paint.descent() - paint.ascent());
-            int x = (int) ((rect.left) + 80);
-            int y = (int) ((rect.top) + 60);
-            Drawable drawable = SysKit.getPageNubmerDrawable();
-            drawable.setBounds((int) (x - 20), y - 10, x + w + 20, y + h + 10);
-            drawable.draw(canvas);
-            y -= paint.ascent();
-            canvas.drawText(pn, x, y, paint);
+//            Rect rect = canvas.getClipBounds();
+//            if (rect.width() != getWidth()
+//                    || rect.height() != getHeight()) {
+//                return;
+//            }
+//            String pn = String.valueOf(currentNumber) + " / "
+//                    + String.valueOf(pageRoot.getPageCount());
+//            int w = (int) paint.measureText(pn);
+//            int h = (int) (paint.descent() - paint.ascent());
+//            int x = (int) ((rect.left) + 80);
+//            int y = (int) ((rect.top) + 60);
+//            Drawable drawable = SysKit.getPageNubmerDrawable();
+//            drawable.setBounds((int) (x - 20), y - 10, x + w + 20, y + h + 10);
+//            drawable.draw(canvas);
+//            y -= paint.ascent();
+//            canvas.drawText(pn, x, y, paint);
         }
         if (preShowPageIndex != currentNumber
                 || prePageCount != getPageCount()) {
