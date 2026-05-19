@@ -9,6 +9,8 @@ import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
@@ -93,6 +95,16 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
     var totalPageCount = 0
 
     var mOnDocPageChangeListener: OnDocPageChangeListener? = null
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var officeInitStabilized = false
+    private var pendingOfficePage = -1
+    private var pendingOfficeTotal = 0
+    private var lastDispatchedPage = -1
+    private var lastDispatchedTotal = 0
+    private val officeInitDispatchRunnable = Runnable {
+        dispatchPageChanged(pendingOfficePage, pendingOfficeTotal)
+        officeInitStabilized = true
+    }
 
     var sourceFilePath: String? = null
     var mFileType: Int = -1
@@ -184,6 +196,7 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
                 docSourceType: Int, fileType: Int,
                 viewPdfInPage: Boolean = false,
                 engine: DocEngine = this.engine) {
+        resetPageDispatchState()
         mFileType = fileType
         var docUrl = docUrl
         var docSourceType = docSourceType
@@ -320,8 +333,21 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
                     0
                 }
                 Log.d(TAG, "changePage: currentPage=$currentPage, totalPageCount=$count")
-                totalPageCount = count
-                mOnDocPageChangeListener?.OnPageChanged(currentPage, totalPageCount)
+                val mergedTotal = maxOf(totalPageCount, count)
+                totalPageCount = mergedTotal
+                if (isOfficeFileType(mFileType)) {
+                    // Office 初始化阶段会多次回调且总页数递增，这里做防抖，稳定后再派发一次。
+                    if (!officeInitStabilized) {
+                        pendingOfficePage = currentPage
+                        pendingOfficeTotal = mergedTotal
+                        mainHandler.removeCallbacks(officeInitDispatchRunnable)
+                        mainHandler.postDelayed(officeInitDispatchRunnable, 350)
+                    } else {
+                        dispatchPageChanged(currentPage, mergedTotal)
+                    }
+                } else {
+                    dispatchPageChanged(currentPage, mergedTotal)
+                }
             }
 
             override fun openFileFailed() {
@@ -540,12 +566,12 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
                     }, 3000)
 
                 if (foundPosition != RecyclerView.NO_POSITION) {
-                    mOnDocPageChangeListener?.OnPageChanged(foundPosition, totalPageCount)
+                    dispatchPageChanged(foundPosition, totalPageCount)
                     return@run
                 }
                 foundPosition = findFirstVisibleItemPosition()
                 if (foundPosition != RecyclerView.NO_POSITION) {
-                    mOnDocPageChangeListener?.OnPageChanged(foundPosition, totalPageCount)
+                    dispatchPageChanged(foundPosition, totalPageCount)
                     return@run
                 }
             }
@@ -591,10 +617,35 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
     }
 
     fun onDestroy() {
+        mainHandler.removeCallbacks(officeInitDispatchRunnable)
         mPoiViewer?.recycle()
         mIOffice = null
         closePdfRender()
         mOnDocPageChangeListener = null
+    }
+
+    private fun isOfficeFileType(type: Int): Boolean {
+        return type == FileType.DOC || type == FileType.DOCX ||
+                type == FileType.PPT || type == FileType.PPTX ||
+                type == FileType.XLS || type == FileType.XLSX
+    }
+
+    private fun resetPageDispatchState() {
+        mainHandler.removeCallbacks(officeInitDispatchRunnable)
+        officeInitStabilized = false
+        pendingOfficePage = -1
+        pendingOfficeTotal = 0
+        lastDispatchedPage = -1
+        lastDispatchedTotal = 0
+        totalPageCount = 0
+    }
+
+    private fun dispatchPageChanged(page: Int, total: Int) {
+        if (page < 0 || total <= 0) return
+        if (page == lastDispatchedPage && total == lastDispatchedTotal) return
+        lastDispatchedPage = page
+        lastDispatchedTotal = total
+        mOnDocPageChangeListener?.OnPageChanged(page, total)
     }
 
     fun scrollToPage(pageIndex: Int) {

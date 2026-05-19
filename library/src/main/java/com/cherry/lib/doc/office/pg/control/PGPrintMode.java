@@ -163,7 +163,7 @@ public class PGPrintMode extends FrameLayout implements IPageListViewListener
     protected void dispatchDraw(Canvas canvas) 
     {
         super.dispatchDraw(canvas);
-//        drawPageNubmer(canvas);
+        drawPageNubmer(canvas);
     }
     
     /**
@@ -660,18 +660,18 @@ public class PGPrintMode extends FrameLayout implements IPageListViewListener
     {
         if (control.getMainFrame().isDrawPageNumber())
         {
-            String pn = String.valueOf((listView.getCurrentPageNumber()) + " / " + pgModel.getSlideCount());
-            int w =  (int)paint.measureText(pn);
-            int h =  (int)(paint.descent() - paint.ascent());
-            int x = 80;
-            int y = 60;
+//            String pn = String.valueOf((listView.getCurrentPageNumber()) + " / " + pgModel.getSlideCount());
+//            int w =  (int)paint.measureText(pn);
+//            int h =  (int)(paint.descent() - paint.ascent());
+//            int x = 80;
+//            int y = 60;
             
-            Drawable drawable = SysKit.getPageNubmerDrawable();
-            drawable.setBounds((int)(x - 20), y - 10, x + w + 20, y + h + 10);
-            drawable.draw(canvas);
-            
-            y -= paint.ascent();
-            canvas.drawText(pn, x, y, paint);
+//            Drawable drawable = SysKit.getPageNubmerDrawable();
+//            drawable.setBounds((int)(x - 20), y - 10, x + w + 20, y + h + 10);
+//            drawable.draw(canvas);
+//
+//            y -= paint.ascent();
+//            canvas.drawText(pn, x, y, paint);
         }
         
         if (preShowPageIndex != listView.getCurrentPageNumber())
