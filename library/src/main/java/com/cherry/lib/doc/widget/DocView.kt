@@ -100,9 +100,9 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
     var mViewPdfInPage: Boolean = true
 
     private lateinit var mRvPdf: PinchZoomRecyclerView
-    private lateinit var mLlBigPdfImage: FrameLayout
-    private lateinit var mIvPdf: PinchImageView
-    private lateinit var mPbBigLoading: ProgressBar
+//    private lateinit var mLlBigPdfImage: FrameLayout
+//    private lateinit var mIvPdf: PinchImageView
+//    private lateinit var mPbBigLoading: ProgressBar
     private lateinit var mFlDocContainer: FrameLayout
     private lateinit var mIvImage: PinchImageView
     private lateinit var mDocWeb: DocWebView
@@ -119,9 +119,9 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
         inflate(context, R.layout.doc_view, this)
 
         mRvPdf = findViewById(R.id.mRvPdf)
-        mLlBigPdfImage = findViewById(R.id.mLlBigPdfImage)
-        mIvPdf = findViewById(R.id.mIvPdf)
-        mPbBigLoading = findViewById(R.id.mPbBigLoading)
+//        mLlBigPdfImage = findViewById(R.id.mLlBigPdfImage)
+//        mIvPdf = findViewById(R.id.mIvPdf)
+//        mPbBigLoading = findViewById(R.id.mPbBigLoading)
         mFlDocContainer = findViewById(R.id.mFlDocContainer)
         mIvImage = findViewById(R.id.mIvImage)
         mDocWeb = findViewById(R.id.mDocWeb)
@@ -129,9 +129,9 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
         mPdfPageNo = findViewById(R.id.mPdfPageNo)
 
 
-        mIvPdf.setOnClickListener {
-            mLlBigPdfImage.hide()
-        }
+//        mIvPdf.setOnClickListener {
+//            mLlBigPdfImage.hide()
+//        }
 
         val typedArray =
             context.obtainStyledAttributes(attrs, R.styleable.DocView, defStyle, 0)
@@ -511,7 +511,9 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
     fun showLoadingProgress(progress: Int) {
         if (progress == 100) {
             mPlLoadProgress.hide()
+            mPlLoadProgress.visibility = View.GONE
         } else {
+            mPlLoadProgress.visibility = View.VISIBLE
             mPlLoadProgress?.show()
             mPlLoadProgress?.progress = progress
         }
@@ -577,15 +579,15 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
     }
 
     override fun OnPdfItemClick(position: Int) {
-        mLlBigPdfImage.show()
-        mPbBigLoading.show()
-        mIvPdf.setImageBitmap(null)
-        pdfRendererCore?.renderPage(position,PdfQuality.ENHANCED) { bitmap: Bitmap?, pageNo: Int ->
-            mPbBigLoading.hide()
-            mIvPdf.setImageBitmap(bitmap)
-            mIvPdf.reset()
-            mPdfPageNo.visibility = GONE
-        }
+//        mLlBigPdfImage.show()
+//        mPbBigLoading.show()
+//        mIvPdf.setImageBitmap(null)
+//        pdfRendererCore?.renderPage(position,PdfQuality.ENHANCED) { bitmap: Bitmap?, pageNo: Int ->
+//            mPbBigLoading.hide()
+//            mIvPdf.setImageBitmap(bitmap)
+//            mIvPdf.reset()
+//            mPdfPageNo.visibility = GONE
+//        }
     }
 
     fun onDestroy() {

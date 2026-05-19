@@ -13,36 +13,36 @@
         android:scrollbars="vertical"
         tools:listitem="@layout/list_item_pdf" />
 
-    <FrameLayout
-        android:id="@+id/mLlBigPdfImage"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/white"
-        android:visibility="gone">
+<!--    <FrameLayout-->
+<!--        android:id="@+id/mLlBigPdfImage"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:background="@color/white"-->
+<!--        android:visibility="gone">-->
 
-        <com.cherry.lib.doc.widget.PinchImageView
-            android:id="@+id/mIvPdf"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+<!--        <com.cherry.lib.doc.widget.PinchImageView-->
+<!--            android:id="@+id/mIvPdf"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent"/>-->
 
-        <ProgressBar
-            android:id="@+id/mPbBigLoading"
-            android:layout_gravity="center"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:visibility="gone"
-            tools:visibility="visible"/>
+<!--        <ProgressBar-->
+<!--            android:id="@+id/mPbBigLoading"-->
+<!--            android:layout_gravity="center"-->
+<!--            android:layout_width="40dp"-->
+<!--            android:layout_height="40dp"-->
+<!--            android:visibility="gone"-->
+<!--            tools:visibility="visible"/>-->
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginTop="50dp"
-            android:layout_marginEnd="30dp"
-            android:scaleType="fitCenter"
-            android:src="@mipmap/ic_big_close"/>
+<!--        <ImageView-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="end"-->
+<!--            android:layout_marginTop="50dp"-->
+<!--            android:layout_marginEnd="30dp"-->
+<!--            android:scaleType="fitCenter"-->
+<!--            android:src="@mipmap/ic_big_close"/>-->
 
-    </FrameLayout>
+<!--    </FrameLayout>-->
 
     <FrameLayout
         android:id="@+id/mFlDocContainer"
@@ -66,7 +66,7 @@
         android:layout_height="20dp"
         style="?android:attr/progressBarStyleHorizontal"
         android:progressDrawable="@drawable/pb_webview_layer"
-        android:visibility="visible"/>
+        android:visibility="gone"/>
 
     <TextView
         android:id="@+id/mPdfPageNo"
