@@ -30,7 +30,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
-import com.blankj.utilcode.util.UriUtils
 import com.cherry.lib.doc.R
 import com.cherry.lib.doc.bean.DocEngine
 import com.cherry.lib.doc.bean.DocMovingOrientation
@@ -48,6 +47,7 @@ import com.cherry.lib.doc.pdf.PdfQuality
 import com.cherry.lib.doc.pdf.PdfRendererCore
 import com.cherry.lib.doc.pdf.PdfViewAdapter
 import com.cherry.lib.doc.pdf.PinchZoomRecyclerView
+import com.cherry.lib.doc.util.AndroidUtils
 import com.cherry.lib.doc.util.Constant
 import com.cherry.lib.doc.util.FileUtils
 import com.cherry.lib.doc.util.ViewUtils.hide
@@ -204,7 +204,7 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
             // 如果是URI类型，且文件类型为-1，则获取一下文件类型，保证正确读取
             val uri = docUrl.toUri()
             Log.d(TAG, "openDoc reset uri = $uri")
-            val file = UriUtils.uri2File(uri)
+            val file = AndroidUtils.uriToFile(uri)
             if (file != null) {
                 var mimeType = ""
                 mFileType = FileUtils.getFileTypeForUrl(file.absolutePath)

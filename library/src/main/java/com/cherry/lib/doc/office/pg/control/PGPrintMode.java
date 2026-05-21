@@ -6,8 +6,8 @@
  */
 package com.cherry.lib.doc.office.pg.control;
 
-import com.blankj.utilcode.util.ScreenUtils;
 import com.cherry.lib.doc.office.common.IOfficeToPicture;
+import com.cherry.lib.doc.util.AndroidUtils;
 import com.cherry.lib.doc.office.common.hyperlink.Hyperlink;
 import com.cherry.lib.doc.office.common.picture.PictureKit;
 import com.cherry.lib.doc.office.common.shape.AbstractShape;
@@ -84,7 +84,7 @@ public class PGPrintMode extends FrameLayout implements IPageListViewListener
         listView = new APageListView(context, this);
         addView(listView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         //修改缩放，避免打开ppt时PPT展示不全或者太小
-        listView.setZoom(ScreenUtils.getScreenWidth() * 1f / pgModel.getPageSize().width, 0, 0);
+        listView.setZoom(AndroidUtils.getScreenWidth() * 1f / pgModel.getPageSize().width, 0, 0);
         paint = new Paint();
         paint.setAntiAlias(true);
         paint.setTypeface(Typeface.SANS_SERIF);

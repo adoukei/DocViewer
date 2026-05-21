@@ -25,7 +25,6 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import com.blankj.utilcode.util.ScreenUtils;
 import com.cherry.lib.doc.office.constant.MainConstant;
 import com.cherry.lib.doc.office.fc.ShapeKit;
 import com.cherry.lib.doc.office.fc.hslf.HSLFSlideShow;

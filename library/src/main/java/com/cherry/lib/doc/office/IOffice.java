@@ -6,13 +6,13 @@ import android.graphics.Color;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.blankj.utilcode.util.AppUtils;
 import com.cherry.lib.doc.office.common.IOfficeToPicture;
 import com.cherry.lib.doc.office.constant.EventConstant;
 import com.cherry.lib.doc.office.constant.wp.WPViewConstant;
 import com.cherry.lib.doc.office.res.ResKit;
 import com.cherry.lib.doc.office.system.IMainFrame;
 import com.cherry.lib.doc.office.system.MainControl;
+import com.cherry.lib.doc.util.AndroidUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -89,7 +89,7 @@ public abstract class IOffice implements IMainFrame {
             // if (Environment.MEDIA_MOUNTED.equals(state)) {
             //     tempFilePath = Environment.getExternalStorageDirectory().getAbsolutePath();
             // }
-            tempFilePath = "/data/data/" + AppUtils.getAppPackageName() + "/cache";
+            tempFilePath = "/data/data/" + AndroidUtils.getPackageName() + "/cache";
             File file = new File(tempFilePath + File.separatorChar + "tempPic");
             if (!file.exists()) {
                 file.mkdir();

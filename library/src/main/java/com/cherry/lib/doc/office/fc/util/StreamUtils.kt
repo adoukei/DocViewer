@@ -3,7 +3,7 @@ package com.cherry.lib.doc.office.fc.util
 import android.content.ContentResolver
 import android.net.Uri
 import android.util.Log
-import com.blankj.utilcode.util.UriUtils
+import com.cherry.lib.doc.util.AndroidUtils
 import java.io.FileInputStream
 import java.io.InputStream
 
@@ -30,7 +30,7 @@ object StreamUtils {
         val uri = Uri.parse(filePath)
         Log.d("StreamUtils", "uri = $uri")
 
-        val file = UriUtils.uri2FileNoCacheCopy(Uri.parse(filePath))
+        val file = AndroidUtils.uriToFileNoCacheCopy(Uri.parse(filePath))
         `in` = if (file != null) {
             Log.d("StreamUtils", "file.getAbsolutePath() = " + file.absolutePath)
             FileInputStream(file)
