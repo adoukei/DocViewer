@@ -30,7 +30,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
-import com.blankj.utilcode.util.UriUtils
 import com.cherry.lib.doc.R
 import com.cherry.lib.doc.bean.DocEngine
 import com.cherry.lib.doc.bean.DocMovingOrientation
@@ -48,6 +47,7 @@ import com.cherry.lib.doc.pdf.PdfQuality
 import com.cherry.lib.doc.pdf.PdfRendererCore
 import com.cherry.lib.doc.pdf.PdfViewAdapter
 import com.cherry.lib.doc.pdf.PinchZoomRecyclerView
+import com.cherry.lib.doc.util.AndroidUtils
 import com.cherry.lib.doc.util.Constant
 import com.cherry.lib.doc.util.FileUtils
 import com.cherry.lib.doc.util.ViewUtils.hide
@@ -113,9 +113,9 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
     private var isDestroyed = false
 
     private lateinit var mRvPdf: PinchZoomRecyclerView
-    private lateinit var mLlBigPdfImage: FrameLayout
-    private lateinit var mIvPdf: PinchImageView
-    private lateinit var mPbBigLoading: ProgressBar
+//    private lateinit var mLlBigPdfImage: FrameLayout
+//    private lateinit var mIvPdf: PinchImageView
+//    private lateinit var mPbBigLoading: ProgressBar
     private lateinit var mFlDocContainer: FrameLayout
     private lateinit var mIvImage: PinchImageView
     private lateinit var mDocWeb: DocWebView
@@ -132,9 +132,9 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
         inflate(context, R.layout.doc_view, this)
 
         mRvPdf = findViewById(R.id.mRvPdf)
-        mLlBigPdfImage = findViewById(R.id.mLlBigPdfImage)
-        mIvPdf = findViewById(R.id.mIvPdf)
-        mPbBigLoading = findViewById(R.id.mPbBigLoading)
+//        mLlBigPdfImage = findViewById(R.id.mLlBigPdfImage)
+//        mIvPdf = findViewById(R.id.mIvPdf)
+//        mPbBigLoading = findViewById(R.id.mPbBigLoading)
         mFlDocContainer = findViewById(R.id.mFlDocContainer)
         mIvImage = findViewById(R.id.mIvImage)
         mDocWeb = findViewById(R.id.mDocWeb)
@@ -142,9 +142,9 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
         mPdfPageNo = findViewById(R.id.mPdfPageNo)
 
 
-        mIvPdf.setOnClickListener {
-            mLlBigPdfImage.hide()
-        }
+//        mIvPdf.setOnClickListener {
+//            mLlBigPdfImage.hide()
+//        }
 
         val typedArray =
             context.obtainStyledAttributes(attrs, R.styleable.DocView, defStyle, 0)
@@ -205,7 +205,7 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
             // 如果是URI类型，且文件类型为-1，则获取一下文件类型，保证正确读取
             val uri = docUrl.toUri()
             Log.d(TAG, "openDoc reset uri = $uri")
-            val file = UriUtils.uri2File(uri)
+            val file = AndroidUtils.uriToFile(uri)
             if (file != null) {
                 var mimeType = ""
                 mFileType = FileUtils.getFileTypeForUrl(file.absolutePath)
@@ -538,7 +538,9 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
     fun showLoadingProgress(progress: Int) {
         if (progress == 100) {
             mPlLoadProgress.hide()
+            mPlLoadProgress.visibility = View.GONE
         } else {
+            mPlLoadProgress.visibility = View.VISIBLE
             mPlLoadProgress?.show()
             mPlLoadProgress?.progress = progress
         }
@@ -618,15 +620,15 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
     }
 
     override fun OnPdfItemClick(position: Int) {
-        mLlBigPdfImage.show()
-        mPbBigLoading.show()
-        mIvPdf.setImageBitmap(null)
-        pdfRendererCore?.renderPage(position,PdfQuality.ENHANCED) { bitmap: Bitmap?, pageNo: Int ->
-            mPbBigLoading.hide()
-            mIvPdf.setImageBitmap(bitmap)
-            mIvPdf.reset()
-            mPdfPageNo.visibility = GONE
-        }
+//        mLlBigPdfImage.show()
+//        mPbBigLoading.show()
+//        mIvPdf.setImageBitmap(null)
+//        pdfRendererCore?.renderPage(position,PdfQuality.ENHANCED) { bitmap: Bitmap?, pageNo: Int ->
+//            mPbBigLoading.hide()
+//            mIvPdf.setImageBitmap(bitmap)
+//            mIvPdf.reset()
+//            mPdfPageNo.visibility = GONE
+//        }
     }
 
     fun onDestroy() {

@@ -1,6 +1,7 @@
 package com.cherry.doc
 
 import android.app.Application
+import com.cherry.lib.doc.util.AndroidUtils
 
 /*
  * -----------------------------------------------------------------
@@ -14,4 +15,8 @@ import android.app.Application
  */
 
 class App: Application() {
+    override fun onCreate() {
+        super.onCreate()
+        AndroidUtils.init(this)
+    }
 }

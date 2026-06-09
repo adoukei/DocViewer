@@ -3,7 +3,6 @@ package com.cherry.lib.doc.util
 import android.content.Context
 import android.net.Uri
 import android.webkit.MimeTypeMap
-import com.blankj.utilcode.util.AppUtils
 import com.cherry.lib.doc.bean.FileType
 import java.io.*
 import java.util.Locale
@@ -41,8 +40,8 @@ object FileUtils {
                 mkdirs()
             }
         }
-    private val internalCacheDirPath = "/data/data/" + AppUtils.getAppPackageName() + "/cache"
-    private val internalFilesDirPath = "/data/data/" + AppUtils.getAppPackageName() + "/files"
+    private val internalCacheDirPath = "/data/data/" + AndroidUtils.getPackageName() + "/cache"
+    private val internalFilesDirPath = "/data/data/" + AndroidUtils.getPackageName() + "/files"
 
     @Throws(IOException::class)
     fun fileFromUri(context: Context, fileUri: String): File {

@@ -9,8 +9,8 @@ package com.cherry.lib.doc.office.res;
 
 import android.content.res.Resources;
 
-import com.blankj.utilcode.util.Utils;
 import com.cherry.lib.doc.R;
+import com.cherry.lib.doc.util.AndroidUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +38,7 @@ public class ResKit {
      *
      */
     public ResKit() {
-        Resources resources = Utils.getApp().getResources();
+        Resources resources = AndroidUtils.getResources();
         res = new HashMap<>();
         res.put("BUTTON_OK", resources.getString(R.string.sys_button_ok));
         res.put("BUTTON_CANCEL", resources.getString(R.string.sys_button_cancel));
