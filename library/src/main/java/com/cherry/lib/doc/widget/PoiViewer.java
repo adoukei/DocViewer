@@ -123,8 +123,24 @@ public class PoiViewer {
     }
 
     public void recycle() {
-        mWebView.removeAllViews();
-        mWebView = null;
+        if (mWebView != null) {
+            try {
+                if (mRootView != null) {
+                    mRootView.removeView(mWebView);
+                }
+                mWebView.stopLoading();
+                mWebView.loadUrl("about:blank");
+                mWebView.clearHistory();
+                mWebView.clearCache(true);
+                mWebView.onPause();
+                mWebView.removeAllViews();
+                mWebView.destroy();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            mWebView = null;
+        }
+        mRootView = null;
         mContext = null;
     }
 

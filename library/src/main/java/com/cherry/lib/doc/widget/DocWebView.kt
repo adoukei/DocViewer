@@ -33,6 +33,7 @@ class DocWebView : ConstraintLayout, DownloadListener {
     var openLinkBySysBrowser = false//是否使用系统浏览器打开http链接
     var mOnWebLoadListener: OnWebLoadListener? = null
     private lateinit var mDocView: WebView
+    private var isDestroyed = false
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
@@ -151,24 +152,40 @@ class DocWebView : ConstraintLayout, DownloadListener {
     }
 
     fun onPause() {
-        mDocView.pauseTimers()
+        if (isDestroyed || !::mDocView.isInitialized) return
+        try {
+            mDocView.onPause()
+            mDocView.pauseTimers()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     fun onResume() {
-        mDocView.resumeTimers()
+        if (isDestroyed || !::mDocView.isInitialized) return
+        try {
+            mDocView.onResume()
+            mDocView.resumeTimers()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     /**
      * must be called on the main thread
      */
     fun onDestroy() {
+        if (isDestroyed) return
+        isDestroyed = true
         try {
-            mDocView.clearHistory();
+            mDocView.stopLoading()
+            mDocView.clearHistory()
             mDocView.clearCache(true)
-            mDocView.loadUrl("about:blank") // clearView() should be changed to loadUrl("about:blank"), since clearView() is deprecated now
-            mDocView.freeMemory()
+            mDocView.loadUrl("about:blank")
+            mDocView.onPause()
             mDocView.pauseTimers()
-            mDocView.destroy() // Note that mWebView.destroy() and mWebView = null do the exact same thing
+            mDocView.removeAllViews()
+            mDocView.destroy()
         } catch (e: Exception) {
             e.printStackTrace()
         }

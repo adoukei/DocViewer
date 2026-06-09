@@ -56,4 +56,24 @@ open class DocViewerActivity : AppCompatActivity() {
         Log.e(TAG, "initData-engine = $engine")
     }
 
+    override fun onPause() {
+        super.onPause()
+        if (::mDocView.isInitialized) {
+            mDocView.onPause()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::mDocView.isInitialized) {
+            mDocView.onResume()
+        }
+    }
+
+    override fun onDestroy() {
+        if (::mDocView.isInitialized) {
+            mDocView.onDestroy()
+        }
+        super.onDestroy()
+    }
 }

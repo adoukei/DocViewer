@@ -110,6 +110,7 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
     var mFileType: Int = -1
     private var mIOffice: IOffice? = null
     var mViewPdfInPage: Boolean = true
+    private var isDestroyed = false
 
     private lateinit var mRvPdf: PinchZoomRecyclerView
     private lateinit var mLlBigPdfImage: FrameLayout
@@ -590,6 +591,20 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
         onDestroy()
     }
 
+    fun onPause() {
+        if (isDestroyed) return
+        if (::mDocWeb.isInitialized) {
+            mDocWeb.onPause()
+        }
+    }
+
+    fun onResume() {
+        if (isDestroyed) return
+        if (::mDocWeb.isInitialized) {
+            mDocWeb.onResume()
+        }
+    }
+
     fun closePdfRender() {
         try {
             if (pdfRendererCoreInitialised) {
@@ -615,11 +630,60 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
     }
 
     fun onDestroy() {
+        if (isDestroyed) return
+        isDestroyed = true
+
         mainHandler.removeCallbacks(officeInitDispatchRunnable)
+        mPdfPageNo.removeCallbacks(runnable)
+
         mPoiViewer?.recycle()
+        mPoiViewer = null
+
+        try {
+            mIOffice?.dispose()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
         mIOffice = null
+
         closePdfRender()
+        pdfViewAdapter = null
+        pdfPageViewAdapter = null
+        if (::mRvPdf.isInitialized) {
+            mRvPdf.adapter = null
+        }
+
+        if (::mFlDocContainer.isInitialized) {
+            mFlDocContainer.removeAllViews()
+        }
+
+        if (::mDocWeb.isInitialized) {
+            mDocWeb.onDestroy()
+        }
+
+        if (::mIvPdf.isInitialized) {
+            mIvPdf.setImageBitmap(null)
+        }
+        if (::mIvImage.isInitialized) {
+            mIvImage.setImageDrawable(null)
+        }
+
+        if (::mLlBigPdfImage.isInitialized) {
+            mLlBigPdfImage.visibility = GONE
+        }
+        if (::mRvPdf.isInitialized) {
+            mRvPdf.visibility = GONE
+        }
+        if (::mFlDocContainer.isInitialized) {
+            mFlDocContainer.visibility = GONE
+        }
+        if (::mIvImage.isInitialized) {
+            mIvImage.visibility = GONE
+        }
+        visibility = GONE
+
         mOnDocPageChangeListener = null
+        mActivity = null
     }
 
     private fun isOfficeFileType(type: Int): Boolean {
