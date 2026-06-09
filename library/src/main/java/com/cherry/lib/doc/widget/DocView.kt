@@ -663,16 +663,16 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
             mDocWeb.onDestroy()
         }
 
-        if (::mIvPdf.isInitialized) {
-            mIvPdf.setImageBitmap(null)
-        }
+//        if (::mIvPdf.isInitialized) {
+//            mIvPdf.setImageBitmap(null)
+//        }
         if (::mIvImage.isInitialized) {
             mIvImage.setImageDrawable(null)
         }
 
-        if (::mLlBigPdfImage.isInitialized) {
-            mLlBigPdfImage.visibility = GONE
-        }
+//        if (::mLlBigPdfImage.isInitialized) {
+//            mLlBigPdfImage.visibility = GONE
+//        }
         if (::mRvPdf.isInitialized) {
             mRvPdf.visibility = GONE
         }

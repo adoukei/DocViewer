@@ -155,7 +155,7 @@ class DocWebView : ConstraintLayout, DownloadListener {
         if (isDestroyed || !::mDocView.isInitialized) return
         try {
             mDocView.onPause()
-            mDocView.pauseTimers()
+//            mDocView.pauseTimers()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -183,7 +183,7 @@ class DocWebView : ConstraintLayout, DownloadListener {
             mDocView.clearCache(true)
             mDocView.loadUrl("about:blank")
             mDocView.onPause()
-            mDocView.pauseTimers()
+//            mDocView.pauseTimers()
             mDocView.removeAllViews()
             mDocView.destroy()
         } catch (e: Exception) {
