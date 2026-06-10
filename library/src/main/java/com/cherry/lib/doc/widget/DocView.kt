@@ -52,6 +52,10 @@ import com.cherry.lib.doc.util.Constant
 import com.cherry.lib.doc.util.FileUtils
 import com.cherry.lib.doc.util.ViewUtils.hide
 import com.cherry.lib.doc.util.ViewUtils.show
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.net.URLEncoder
 
@@ -201,27 +205,55 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
         mFileType = fileType
         var docUrl = docUrl
         var docSourceType = docSourceType
+
+        // 立即显示加载进度条，让用户知道正在处理
+        showLoadingImmediately()
+
         if (docUrl != null && docSourceType == DocSourceType.URI && fileType == -1) {
-            // 如果是URI类型，且文件类型为-1，则获取一下文件类型，保证正确读取
+            // 如果是URI类型，异步进行文件类型检测，避免阻塞主线程
             val uri = docUrl.toUri()
             Log.d(TAG, "openDoc reset uri = $uri")
-            val file = AndroidUtils.uriToFile(uri)
-            if (file != null) {
-                var mimeType = ""
-                mFileType = FileUtils.getFileTypeForUrl(file.absolutePath)
-                if (mFileType == FileType.NOT_SUPPORT) {
-                    mimeType = FileUtils.getFileMimeType(context, uri) ?: "*/*"
-                    mFileType = FileUtils.getFileTypeForUrl(FileUtils.mimeExtMap[mimeType] ?: "")
+            CoroutineScope(Dispatchers.IO).launch {
+                val file = AndroidUtils.uriToFile(uri)
+                var resolvedUrl = docUrl
+                var resolvedSourceType = docSourceType
+                var resolvedFileType = mFileType
+
+                if (file != null) {
+                    var mimeType = ""
+                    resolvedFileType = FileUtils.getFileTypeForUrl(file.absolutePath)
+                    if (resolvedFileType == FileType.NOT_SUPPORT) {
+                        mimeType = FileUtils.getFileMimeType(context, uri) ?: "*/*"
+                        resolvedFileType = FileUtils.getFileTypeForUrl(FileUtils.mimeExtMap[mimeType] ?: "")
+                    }
+                    resolvedUrl = file.absolutePath
+                    resolvedSourceType = DocSourceType.PATH
+                    Log.d(TAG, "openDoc reset url = $resolvedUrl")
+                    Log.d(TAG, "openDoc reset docSourceType = $resolvedSourceType")
+                    Log.d(TAG, "openDoc reset fileType = $resolvedFileType, mimeType = $mimeType")
+                } else {
+                    Log.d(TAG, "file = null")
                 }
-                docUrl = file.absolutePath
-                docSourceType = DocSourceType.PATH
-                Log.d(TAG, "openDoc reset url = $docUrl")
-                Log.d(TAG, "openDoc reset docSourceType = $docSourceType")
-                Log.d(TAG, "openDoc reset fileType = $fileType, mimeType = $mimeType")
-            } else {
-                Log.d(TAG, "file = null")
+                withContext(Dispatchers.Main) {
+                    openDocInternal(activity, resolvedUrl, resolvedSourceType, resolvedFileType, viewPdfInPage, engine)
+                }
             }
+            return
         }
+
+        openDocInternal(activity, docUrl, docSourceType, fileType, viewPdfInPage, engine)
+    }
+
+    private fun showLoadingImmediately() {
+        mPlLoadProgress.visibility = View.VISIBLE
+        mPlLoadProgress.show()
+        mPlLoadProgress.progress = 0
+    }
+
+    private fun openDocInternal(activity: Activity?, docUrl: String?,
+                                docSourceType: Int, fileType: Int,
+                                viewPdfInPage: Boolean = false,
+                                engine: DocEngine = this.engine) {
         Log.e(TAG,"openDoc()......mFileType1 = $mFileType")
         mActivity = activity
         mViewPdfInPage = viewPdfInPage
@@ -263,7 +295,7 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
                 if (showPageNum) {
                     showPageNum = false
                 }
-                Log.e(TAG,"openDoc()......")
+                Log.e(TAG,"openDoc()......IMAGE")
                 mDocWeb.hide()
                 mFlDocContainer.hide()
                 mRvPdf.hide()
@@ -275,6 +307,8 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
                     Log.e(TAG,"openDoc()......URL")
                     mIvImage.load(docUrl)
                 }
+                // 图片加载完成后隐藏 progress
+                showLoadingProgress(100)
             }
             FileType.NOT_SUPPORT -> {
                 if (showPageNum) {
@@ -309,7 +343,8 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
             }
 
             override fun openFileFinish() {
-                mDocContainer?.postDelayed({
+                // 立即更新视图，移除不必要的 200ms 延迟
+                mDocContainer?.post {
                     mDocContainer.removeAllViews()
                     mDocContainer.addView(
                         view,
@@ -318,7 +353,10 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
                             RelativeLayout.LayoutParams.MATCH_PARENT
                         )
                     )
-                },200)
+                    // Office 文档加载完成后隐藏 progress
+                    mPlLoadProgress.hide()
+                    mPlLoadProgress.visibility = View.GONE
+                }
             }
 
             override fun changePage() {
@@ -342,7 +380,7 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
                         pendingOfficePage = currentPage
                         pendingOfficeTotal = mergedTotal
                         mainHandler.removeCallbacks(officeInitDispatchRunnable)
-                        mainHandler.postDelayed(officeInitDispatchRunnable, 350)
+                        mainHandler.postDelayed(officeInitDispatchRunnable, 100)
                     } else {
                         dispatchPageChanged(currentPage, mergedTotal)
                     }
@@ -352,6 +390,8 @@ class DocView : FrameLayout,OnDownloadListener, OnWebLoadListener,OnPdfItemClick
             }
 
             override fun openFileFailed() {
+                mPlLoadProgress.hide()
+                mPlLoadProgress.visibility = View.GONE
                 try {
                     if (mPoiViewer == null) {
                         mPoiViewer = PoiViewer(context)

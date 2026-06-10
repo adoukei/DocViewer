@@ -27,7 +27,7 @@ import com.cherry.lib.doc.util.ViewUtils.show
  * File: PdfViewAdapter
  * Author: Victor
  * Date: 2023/09/28 11:17
- * Description: 
+ * Description: 已优化 —— 减少冗余渲染请求，离屏自动清理
  * -----------------------------------------------------------------
  */
 
@@ -38,10 +38,13 @@ internal class PdfViewAdapter(
     private val listener: OnPdfItemClickListener?
 ) :
     RecyclerView.Adapter<PdfViewAdapter.PdfPageViewHolder>() {
+
+    // 跟踪当前已请求渲染但尚未完成的页码
+    private val pendingRenderPages = mutableSetOf<Int>()
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PdfPageViewHolder {
         return PdfPageViewHolder(
-            LayoutInflater.from(parent.context).inflate(R.layout.list_item_pdf,parent,
-                false)
+            LayoutInflater.from(parent.context).inflate(R.layout.list_item_pdf, parent, false)
         )
     }
 
@@ -55,51 +58,99 @@ internal class PdfViewAdapter(
     }
 
     override fun onBindViewHolder(holder: PdfPageViewHolder, position: Int) {
-        holder.bindView()
+        // 不在 onBindViewHolder 中触发渲染，改由 onViewAttachedToWindow 处理
+        // 这里只做基本的重置
+        holder.resetView()
     }
 
-    inner class PdfPageViewHolder : RecyclerView.ViewHolder,View.OnAttachStateChangeListener {
-        private var container_view: FrameLayout? = null
-        private var pdf_view_page_loading_progress: ProgressBar? = null
-        private var pageView: ImageView? = null
+    override fun onViewRecycled(holder: PdfPageViewHolder) {
+        super.onViewRecycled(holder)
+        holder.recycleView()
+    }
 
-        constructor(itemView: View): super(itemView) {
-            container_view = itemView.findViewById(R.id.container_view)
-            pdf_view_page_loading_progress = itemView.findViewById(R.id.pdf_view_page_loading_progress)
+    inner class PdfPageViewHolder : RecyclerView.ViewHolder, View.OnAttachStateChangeListener {
+        private var containerView: FrameLayout? = null
+        private var pdfViewPageLoadingProgress: ProgressBar? = null
+        private var pageView: ImageView? = null
+        private var isRendered = false
+
+        constructor(itemView: View) : super(itemView) {
+            containerView = itemView.findViewById(R.id.container_view)
+            pdfViewPageLoadingProgress = itemView.findViewById(R.id.pdf_view_page_loading_progress)
             pageView = itemView.findViewById(R.id.pageView)
 
-            container_view?.setOnClickListener {
+            containerView?.setOnClickListener {
                 listener?.OnPdfItemClick(adapterPosition)
             }
 
             itemView.addOnAttachStateChangeListener(this)
         }
 
-        fun bindView() {
+        fun resetView() {
+            isRendered = false
+            showLoading()
+        }
 
+        fun recycleView() {
+            isRendered = false
+            pageView?.setImageBitmap(null)
+            pageView?.clearAnimation()
+            showLoading()
+        }
+
+        private fun showLoading() {
+            if (enableLoadingForPages) {
+                val inCache = renderer?.pageExistInCache(adapterPosition) == true
+                if (!inCache) {
+                    pdfViewPageLoadingProgress?.show()
+                } else {
+                    pdfViewPageLoadingProgress?.hide()
+                }
+            } else {
+                pdfViewPageLoadingProgress?.hide()
+            }
         }
 
         private fun handleLoadingForPage(position: Int) {
             if (!enableLoadingForPages) {
-                pdf_view_page_loading_progress?.hide()
+                pdfViewPageLoadingProgress?.hide()
                 return
             }
 
             if (renderer?.pageExistInCache(position) == true) {
-                pdf_view_page_loading_progress?.hide()
+                pdfViewPageLoadingProgress?.hide()
             } else {
-                pdf_view_page_loading_progress?.show()
+                pdfViewPageLoadingProgress?.show()
             }
         }
 
         override fun onViewAttachedToWindow(p0: View) {
-            handleLoadingForPage(adapterPosition)
-            renderer?.renderPage(adapterPosition) { bitmap: Bitmap?, pageNo: Int ->
+            val position = adapterPosition
+            if (position == RecyclerView.NO_POSITION || isRendered) return
+
+            // 避免对同一个位置发起重复的渲染请求
+            synchronized(pendingRenderPages) {
+                if (pendingRenderPages.contains(position)) {
+                    // 已经请求过渲染了，只需更新 loading 状态
+                    handleLoadingForPage(position)
+                    return
+                }
+                pendingRenderPages.add(position)
+            }
+
+            handleLoadingForPage(position)
+            renderer?.renderPage(position) { bitmap: Bitmap?, pageNo: Int ->
+                synchronized(pendingRenderPages) {
+                    pendingRenderPages.remove(pageNo)
+                }
+
+                // 仅当 RecyclerView 尚未复用此 ViewHolder 时才更新 UI
                 if (pageNo == adapterPosition) {
                     bitmap?.let {
-                        container_view?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                            val scaleFactor = 1.2f  // 增大到原来的120%
-                            height = ((container_view?.width?.toFloat() ?: 0f) / (bitmap.width.toFloat() / bitmap.height.toFloat()) * scaleFactor).toInt()
+                        isRendered = true
+                        containerView?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                            val scaleFactor = 1.2f
+                            height = ((containerView?.width?.toFloat() ?: 0f) / (bitmap.width.toFloat() / bitmap.height.toFloat()) * scaleFactor).toInt()
                             this.topMargin = pageSpacing.top
                             this.leftMargin = pageSpacing.left
                             this.rightMargin = pageSpacing.right
@@ -110,7 +161,7 @@ internal class PdfViewAdapter(
                             interpolator = LinearInterpolator()
                             duration = 200
                         }
-                        pdf_view_page_loading_progress?.hide()
+                        pdfViewPageLoadingProgress?.hide()
                     }
                 }
             }
@@ -119,6 +170,7 @@ internal class PdfViewAdapter(
         override fun onViewDetachedFromWindow(p0: View) {
             pageView?.setImageBitmap(null)
             pageView?.clearAnimation()
+            isRendered = false
         }
     }
 
@@ -129,8 +181,6 @@ internal class PdfViewAdapter(
             if (drawable.opacity != PixelFormat.OPAQUE) Bitmap.Config.ARGB_8888 else Bitmap.Config.RGB_565
         )
         val canvas = Canvas(bitmap)
-
-        //canvas.setBitmap(bitmap)
         drawable.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
         drawable.draw(canvas)
         return bitmap

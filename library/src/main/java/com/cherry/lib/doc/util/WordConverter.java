@@ -1,12 +1,8 @@
 package com.cherry.lib.doc.util;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.util.Xml;
 
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.hwpf.HWPFDocument;
 import org.apache.poi.hwpf.usermodel.CharacterRun;
 import org.apache.poi.hwpf.usermodel.Paragraph;
@@ -27,10 +23,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
@@ -48,7 +40,6 @@ public class WordConverter {
     public int screenWidth;
     public FileOutputStream output;
     public File myFile;
-    public StringBuffer lsb = new StringBuffer();
     public String returnPath = "";
     static final int BUFFER = 2048;
 
@@ -90,10 +81,12 @@ public class WordConverter {
         try {
             myFile = new File(htmlPath);
             output = new FileOutputStream(myFile);
+            // 使用 BufferedOutputStream 加速写入
+            java.io.BufferedOutputStream bos = new java.io.BufferedOutputStream(output, 8192);
             String head = "<html><meta charset=\"utf-8\"><body>";
             String tagBegin = "<p>";
             String tagEnd = "</p>";
-            output.write(head.getBytes());
+            bos.write(head.getBytes());
             int numParagraphs = range.numParagraphs();
             for (int i = 0; i < numParagraphs; i++) {
                 Paragraph p = range.getParagraph(i);
@@ -107,46 +100,47 @@ public class WordConverter {
                         String colBegin = "<td>";
                         String colEnd = "</td>";
                         Table table = tableIterator.next();
-                        output.write(tableBegin.getBytes());
+                        bos.write(tableBegin.getBytes());
                         int rows = table.numRows();
                         for (int r = 0; r < rows; r++) {
-                            output.write(rowBegin.getBytes());
+                            bos.write(rowBegin.getBytes());
                             TableRow row = table.getRow(r);
                             int cols = row.numCells();
                             int rowNumParagraphs = row.numParagraphs();
                             int colsNumParagraphs = 0;
                             for (int c = 0; c < cols; c++) {
-                                output.write(colBegin.getBytes());
+                                bos.write(colBegin.getBytes());
                                 TableCell cell = row.getCell(c);
                                 int max = temp + cell.numParagraphs();
                                 colsNumParagraphs = colsNumParagraphs + cell.numParagraphs();
                                 for (int cp = temp; cp < max; cp++) {
                                     Paragraph p1 = range.getParagraph(cp);
-                                    output.write(tagBegin.getBytes());
-                                    writeParagraphContent(p1);
-                                    output.write(tagEnd.getBytes());
+                                    bos.write(tagBegin.getBytes());
+                                    writeParagraphContent(bos, p1);
+                                    bos.write(tagEnd.getBytes());
                                     temp++;
                                 }
-                                output.write(colEnd.getBytes());
+                                bos.write(colEnd.getBytes());
                             }
                             int max1 = temp + rowNumParagraphs;
                             for (int m = temp + colsNumParagraphs; m < max1; m++) {
                                 temp++;
                             }
-                            output.write(rowEnd.getBytes());
+                            bos.write(rowEnd.getBytes());
                         }
-                        output.write(tableEnd.getBytes());
+                        bos.write(tableEnd.getBytes());
                     }
                     i = temp;
                 } else {
-                    output.write(tagBegin.getBytes());
-                    writeParagraphContent(p);
-                    output.write(tagEnd.getBytes());
+                    bos.write(tagBegin.getBytes());
+                    writeParagraphContent(bos, p);
+                    bos.write(tagEnd.getBytes());
                 }
             }
             String end = "</body></html>";
-            output.write(end.getBytes());
-            output.close();
+            bos.write(end.getBytes());
+            bos.flush();
+            bos.close();
         } catch (Exception e) {
             System.out.println("readAndWrite Exception:" + e.getMessage());
             e.printStackTrace();
@@ -158,6 +152,7 @@ public class WordConverter {
         try {
             this.myFile = new File(this.htmlPath);
             this.output = new FileOutputStream(this.myFile);
+            java.io.BufferedOutputStream bos = new java.io.BufferedOutputStream(this.output, 8192);
             String head = "<!DOCTYPE><html><meta charset=\"utf-8\"><body>";
             String end = "</body></html>";
             String tagBegin = "<p>";
@@ -169,7 +164,7 @@ public class WordConverter {
             String colBegin = "<td>";
             String colEnd = "</td>";
             String style = "style=\"";
-            this.output.write(head.getBytes());// ??????
+            bos.write(head.getBytes());
             ZipFile xlsxFile = new ZipFile(new File(this.nameStr));
             ZipEntry sharedStringXML = xlsxFile.getEntry("word/document.xml");
             InputStream inputStream = xlsxFile.getInputStream(sharedStringXML);
@@ -198,42 +193,41 @@ public class WordConverter {
                         if (tag.equalsIgnoreCase("u")) { // ????????
                             isUnderline = true;
                         }
-                        if (tag.equalsIgnoreCase("jc")) { // ???????
+                        if (tag.equalsIgnoreCase("jc")) {
                             String align = xmlParser.getAttributeValue(0);
                             if (align.equals("center")) {
-                                this.output.write("<center>".getBytes());
+                                bos.write("<center>".getBytes());
                                 isCenter = true;
                             }
                             if (align.equals("right")) {
-                                this.output.write("<div align=\"right\">".getBytes());
+                                bos.write("<div align=\"right\">".getBytes());
                                 isRight = true;
                             }
                         }
 
-                        if (tag.equalsIgnoreCase("color")) { // ??????
+                        if (tag.equalsIgnoreCase("color")) {
 
                             String color = xmlParser.getAttributeValue(0);
 
-                            this.output.write(("<span style=\"color:" + color + ";\">").getBytes());
+                            bos.write(("<span style=\"color:" + color + ";\">").getBytes());
                             isColor = true;
                         }
-                        if (tag.equalsIgnoreCase("sz")) { // ?????
+                        if (tag.equalsIgnoreCase("sz")) {
                             if (isR == true) {
                                 int size = decideSize(Integer.valueOf(xmlParser.getAttributeValue(0)));
-                                this.output.write(("<font size=" + size + ">").getBytes());
+                                bos.write(("<font size=" + size + ">").getBytes());
                                 isSize = true;
                             }
                         }
-                        // ??????????
-                        if (tag.equalsIgnoreCase("tbl")) { // ???tbl ????
-                            this.output.write(tableBegin.getBytes());
+                        if (tag.equalsIgnoreCase("tbl")) {
+                            bos.write(tableBegin.getBytes());
                             isTable = true;
                         }
-                        if (tag.equalsIgnoreCase("tr")) { // ??
-                            this.output.write(rowBegin.getBytes());
+                        if (tag.equalsIgnoreCase("tr")) {
+                            bos.write(rowBegin.getBytes());
                         }
-                        if (tag.equalsIgnoreCase("tc")) { // ??
-                            this.output.write(colBegin.getBytes());
+                        if (tag.equalsIgnoreCase("tc")) {
+                            bos.write(colBegin.getBytes());
                         }
 
                         if (tag.equalsIgnoreCase("pic")) { // ?????? pic ??
@@ -257,19 +251,23 @@ public class WordConverter {
                             if (sharePicture != null) {
                                 pictIS = xlsxFile.getInputStream(sharePicture);
                                 ByteArrayOutputStream pOut = new ByteArrayOutputStream();
-                                byte[] bt = null;
-                                byte[] b = new byte[1000];
+                                byte[] b = new byte[2048];
                                 int len = 0;
                                 while ((len = pictIS.read(b)) != -1) {
                                     pOut.write(b, 0, len);
                                 }
                                 pictIS.close();
                                 pOut.close();
-                                bt = pOut.toByteArray();
-                                Log.i("byteArray", "" + bt);
-                                if (pictIS != null) pictIS.close();
-                                if (pOut != null) pOut.close();
-                                writeDOCXPicture(bt);
+                                byte[] bt = pOut.toByteArray();
+                                // 保存图片到文件，然后在 HTML 中引用
+                                makePictureFile();
+                                pictureIndex++;
+                                File myPicture = new File(this.picturePath);
+                                FileOutputStream outputPicture = new FileOutputStream(myPicture);
+                                outputPicture.write(bt);
+                                outputPicture.close();
+                                String imageString = "<img src=\"" + this.picturePath + "\">";
+                                bos.write(imageString.getBytes());
                             }
 
                             pictureIndex++;
@@ -280,51 +278,50 @@ public class WordConverter {
                         }
                         if (tag.equalsIgnoreCase("p")) {
                             if (isTable == false) {
-                                this.output.write(tagBegin.getBytes());
+                                bos.write(tagBegin.getBytes());
                             }
                         }
-                        if (tag.equalsIgnoreCase("i")) { // ???
+                        if (tag.equalsIgnoreCase("i")) {
                             isItalic = true;
                         }
-                        // ???? ???
                         if (tag.equalsIgnoreCase("t")) {
-                            if (isBold == true) { // ???
-                                this.output.write("<b>".getBytes());
+                            if (isBold == true) {
+                                bos.write("<b>".getBytes());
                             }
-                            if (isUnderline == true) { // ??????????,????<u>
-                                this.output.write("<u>".getBytes());
+                            if (isUnderline == true) {
+                                bos.write("<u>".getBytes());
                             }
-                            if (isItalic == true) { // ????????,????<i>
-                                output.write("<i>".getBytes());
+                            if (isItalic == true) {
+                                bos.write("<i>".getBytes());
                             }
                             river = xmlParser.nextText();
-                            this.output.write(river.getBytes()); // ??????
-                            if (isItalic == true) { // ????????,??????????,????</i>,?????????=false
-                                this.output.write("</i>".getBytes());
+                            bos.write(river.getBytes());
+                            if (isItalic == true) {
+                                bos.write("</i>".getBytes());
                                 isItalic = false;
                             }
-                            if (isUnderline == true) {// ??????????,??????????,????</u>,???????????=false
-                                this.output.write("</u>".getBytes());
+                            if (isUnderline == true) {
+                                bos.write("</u>".getBytes());
                                 isUnderline = false;
                             }
-                            if (isBold == true) { // ???
-                                this.output.write("</b>".getBytes());
+                            if (isBold == true) {
+                                bos.write("</b>".getBytes());
                                 isBold = false;
                             }
-                            if (isSize == true) { // ??????????,??????????
-                                this.output.write("</font>".getBytes());
+                            if (isSize == true) {
+                                bos.write("</font>".getBytes());
                                 isSize = false;
                             }
-                            if (isColor == true) { // ?????????????,??????????
-                                this.output.write("</span>".getBytes());
+                            if (isColor == true) {
+                                bos.write("</span>".getBytes());
                                 isColor = false;
                             }
-                            if (isCenter == true) { // ???????,??????????
-                                this.output.write("</center>".getBytes());
+                            if (isCenter == true) {
+                                bos.write("</center>".getBytes());
                                 isCenter = false;
                             }
-                            if (isRight == true) { // ??????????<right></right>,???div??????????,??????
-                                this.output.write("</div>".getBytes());
+                            if (isRight == true) {
+                                bos.write("</div>".getBytes());
                                 isRight = false;
                             }
                         }
@@ -332,19 +329,19 @@ public class WordConverter {
                     // ???????
                     case XmlPullParser.END_TAG:
                         String tag2 = xmlParser.getName();
-                        if (tag2.equalsIgnoreCase("tbl")) { // ?????????,????????
-                            this.output.write(tableEnd.getBytes());
+                        if (tag2.equalsIgnoreCase("tbl")) {
+                            bos.write(tableEnd.getBytes());
                             isTable = false;
                         }
-                        if (tag2.equalsIgnoreCase("tr")) { // ?????
-                            this.output.write(rowEnd.getBytes());
+                        if (tag2.equalsIgnoreCase("tr")) {
+                            bos.write(rowEnd.getBytes());
                         }
-                        if (tag2.equalsIgnoreCase("tc")) { // ?????
-                            this.output.write(colEnd.getBytes());
+                        if (tag2.equalsIgnoreCase("tc")) {
+                            bos.write(colEnd.getBytes());
                         }
-                        if (tag2.equalsIgnoreCase("p")) { // p????,??????????????
+                        if (tag2.equalsIgnoreCase("p")) {
                             if (isTable == false) {
-                                this.output.write(tagEnd.getBytes());
+                                bos.write(tagEnd.getBytes());
                             }
                         }
                         if (tag2.equalsIgnoreCase("r")) {
@@ -356,7 +353,9 @@ public class WordConverter {
                 }
                 evtType = xmlParser.next();
             }
-            this.output.write(end.getBytes());
+            bos.write(end.getBytes());
+            bos.flush();
+            bos.close();
         } catch (ZipException e) {
             e.printStackTrace();
             Log.e(getClass().getSimpleName(),"errr-----------1");
@@ -371,33 +370,6 @@ public class WordConverter {
             river = "???????????????";
         }
     }
-
-    private static Object getCellValue(HSSFCell cell) throws IOException {
-        Object value = "";
-        if (cell.getCellType() == HSSFCell.CELL_TYPE_STRING) {
-            value = cell.getRichStringCellValue().toString();
-        } else if (cell.getCellType() == HSSFCell.CELL_TYPE_NUMERIC) {
-            if (HSSFDateUtil.isCellDateFormatted(cell)) {
-                Date date = (Date) cell.getDateCellValue();
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                value = sdf.format(date);
-            } else {
-                double value_temp = (double) cell.getNumericCellValue();
-                BigDecimal bd = new BigDecimal(value_temp);
-                BigDecimal bd1 = bd.setScale(3, bd.ROUND_HALF_UP);
-                value = bd1.doubleValue();
-
-                DecimalFormat format = new DecimalFormat("#0.###");
-                value = format.format(cell.getNumericCellValue());
-
-            }
-        }
-        if (cell.getCellType() == HSSFCell.CELL_TYPE_BLANK) {
-            value = "";
-        }
-        return value;
-    }
-
 
     public void makeFile() {
         String fileName = nameStr.substring(nameStr.lastIndexOf("/") + 1);
@@ -435,12 +407,10 @@ public class WordConverter {
         }
     }
 
-    public void writePicture() {
+    public void writePicture(java.io.OutputStream bos) {
         Picture picture = (Picture) pictures.get(presentPicture);
 
         byte[] pictureBytes = picture.getContent();
-
-        Bitmap bitmap = BitmapFactory.decodeByteArray(pictureBytes, 0, pictureBytes.length);
 
         makePictureFile();
         presentPicture++;
@@ -448,11 +418,8 @@ public class WordConverter {
         File myPicture = new File(picturePath);
 
         try {
-
             FileOutputStream outputPicture = new FileOutputStream(myPicture);
-
             outputPicture.write(pictureBytes);
-
             outputPicture.close();
         } catch (Exception e) {
             System.out.println("outputPicture Exception");
@@ -462,7 +429,7 @@ public class WordConverter {
         imageString = imageString + ">";
 
         try {
-            output.write(imageString.getBytes());
+            bos.write(imageString.getBytes());
         } catch (Exception e) {
             System.out.println("output Exception");
         }
@@ -554,29 +521,7 @@ public class WordConverter {
 
     }
 
-    public void writeDOCXPicture(byte[] pictureBytes) {
-        Bitmap bitmap = BitmapFactory.decodeByteArray(pictureBytes, 0, pictureBytes.length);
-        makePictureFile();
-        this.presentPicture++;
-        File myPicture = new File(this.picturePath);
-        try {
-            FileOutputStream outputPicture = new FileOutputStream(myPicture);
-            outputPicture.write(pictureBytes);
-            outputPicture.close();
-        } catch (Exception e) {
-            System.out.println("outputPicture Exception");
-        }
-        String imageString = "<img src=\"" + this.picturePath + "\"";
-
-        imageString = imageString + ">";
-        try {
-            this.output.write(imageString.getBytes());
-        } catch (Exception e) {
-            System.out.println("output Exception");
-        }
-    }
-
-    public void writeParagraphContent(Paragraph paragraph) {
+    public void writeParagraphContent(java.io.OutputStream bos, Paragraph paragraph) {
         Paragraph p = paragraph;
         int pnumCharacterRuns = p.numCharacterRuns();
 
@@ -586,13 +531,13 @@ public class WordConverter {
 
             if (run.getPicOffset() == 0 || run.getPicOffset() >= 1000) {
                 if (presentPicture < pictures.size()) {
-                    writePicture();
+                    writePicture(bos);
                 }
             } else {
                 try {
                     String text = run.text();
                     if (text.length() >= 2 && pnumCharacterRuns < 2) {
-                        output.write(text.getBytes());
+                        bos.write(text.getBytes());
                     } else {
                         int size = run.getFontSize();
                         int color = run.getColor();
@@ -604,26 +549,26 @@ public class WordConverter {
                         String islaBegin = "<i>";
                         String islaEnd = "</i>";
 
-                        output.write(fontSizeBegin.getBytes());
-                        output.write(fontColorBegin.getBytes());
+                        bos.write(fontSizeBegin.getBytes());
+                        bos.write(fontColorBegin.getBytes());
 
                         if (run.isBold()) {
-                            output.write(boldBegin.getBytes());
+                            bos.write(boldBegin.getBytes());
                         }
                         if (run.isItalic()) {
-                            output.write(islaBegin.getBytes());
+                            bos.write(islaBegin.getBytes());
                         }
 
-                        output.write(text.getBytes());
+                        bos.write(text.getBytes());
 
                         if (run.isBold()) {
-                            output.write(boldEnd.getBytes());
+                            bos.write(boldEnd.getBytes());
                         }
                         if (run.isItalic()) {
-                            output.write(islaEnd.getBytes());
+                            bos.write(islaEnd.getBytes());
                         }
-                        output.write(fontEnd.getBytes());
-                        output.write(fontEnd.getBytes());
+                        bos.write(fontEnd.getBytes());
+                        bos.write(fontEnd.getBytes());
                     }
                 } catch (Exception e) {
                     System.out.println("Write File Exception");
