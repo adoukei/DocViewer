@@ -38,11 +38,12 @@ internal class PdfRendererCore(
     private val pdfQuality: PdfQuality
 ) {
     companion object {
-        var pdfRenderer: PdfRenderer? = null
         private const val PREFETCH_COUNT = 3
         private const val MAX_CONCURRENT_RENDERS = 2
         private const val JPEG_QUALITY = 80
     }
+
+    private var pdfRenderer: PdfRenderer? = null
 
     private val cachePath = "___pdf___cache___"
     private val renderSemaphore = Semaphore(MAX_CONCURRENT_RENDERS)
@@ -219,5 +220,6 @@ internal class PdfRendererCore(
         } catch (e: Exception) {
             e.printStackTrace()
         }
+        pdfRenderer = null
     }
 }
